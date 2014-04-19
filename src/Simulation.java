@@ -21,7 +21,7 @@ public class Simulation {
 	//create a new simulation object. parameters include board dimension and a list of coordinates
 	//Each coordinate refers to a cell that initially knows the rumor\
 	
-	public Simulation(int dim, List<Coordinate> coord, Mode mode, boolean wrapAround)
+	public Simulation(int dim, Mode mode, boolean wrapAround, List<Coordinate> coord)
 	{
 		this.wrapAround = wrapAround;
 
