@@ -5,27 +5,32 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-
+//This is the main driver class
+//It is capable of parsing input files and running multiple simulations
 public class RumourMill {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
-		int dimension = 100;
+		int dimension = 101; //board dimension initially 101
+		
+		//mode is the update rule mode, default FOURMODE
 		Simulation.Mode mode = Simulation.Mode.FOURMODE;
-		boolean wrapping = true;
+		boolean wrapping = true; //wrap-around is on
 		
+		//keeps track of the coords of all cells that are aware of the rumor
 		ArrayList<Coordinate> aware = new ArrayList<Coordinate>(0);
-		
 	    BufferedReader br;
 	    
 	    
 	    try {
+	    	//read an input file
 			br = new BufferedReader(new FileReader(args[0]));
 	    
+			//read dimension
 	        String line = br.readLine();
 	        dimension = Integer.parseInt(line);
 	        
+	        //read mode line
 	        line = br.readLine();
 	        if (line == "EIGHTMODE")
 	        {
@@ -47,14 +52,15 @@ public class RumourMill {
 	        	wrapping = true;
 	        }
 	        
+	        
+	        //keep reading in coordinates of initial cells
 	        line = br.readLine();
 	        while (line != null) {
-
-	        	System.out.println(line);
 	        	
 	        	int x = Integer.parseInt(line.split(",")[0]);
 	        	int y = Integer.parseInt(line.split(",")[1]);
 	        	
+	        	//add read in coordinate to list of aware cells
 	        	aware.add(new Coordinate(x,y));
 	        	
 	            line = br.readLine();
@@ -65,10 +71,21 @@ public class RumourMill {
 			e.printStackTrace();
 		} 
 		
+	    //keep track of total clock ticks
+		float totalTicks = 0;
 		
-		Simulation s = new Simulation(dimension, mode, wrapping, aware);
+		//loop to run the simulation many times
+		for (int i=0; i<Integer.parseInt(args[2]); i++)
+		{
+		Simulation s = new Simulation(dimension, mode, wrapping, 
+									aware, Integer.parseInt(args[1]));
 		
 		s.runSim();
+		totalTicks += s.getTicks();
+		}
+		
+		System.out.println("Average ticks over "+ Integer.parseInt(args[2]) 
+				+" run(s): " + totalTicks/Integer.parseInt(args[2]));
 	}
 
 }

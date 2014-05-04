@@ -1,0 +1,36 @@
+Instructions for running the simulator:
+
+The 
+usage: 
+java RumorMill inputfile graphmode numberofsimulations
+
+graph modes are integers and include:
+
+0: told or not
+1: number of times told
+2: firstheard
+3: no graph output
+
+Each simulator invocation must be provided with an input file in order
+to set modes for the simulator and to set up the initial board state.
+
+input files must be provided in the following format. The first three lines 
+set board parameters and modes and the remaining lines are comma separated 
+coordinates that refer to cells that initially know the rumor
+----
+boardDimension (dimension of the square array as an integer)
+EIGHTMODE|FOURMODE (which update rule to follow?)
+true|false (is wrap-around on?)
+xcoord,ycoord
+xcoord2,ycoord2
+etc,etc
+----
+Please see the input1 file for an example of the format
+
+Example invocation:
+
+java RumorMill input1 0 1000
+
+this will run the simulation specified in the input1 file 
+using graphmode=0, 1000 times.
+

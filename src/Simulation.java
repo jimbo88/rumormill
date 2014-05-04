@@ -2,36 +2,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-
+//The main simulation class
+//The main global simulation logic occurs here
+//A simulation can be run to completion or stepped through
 public class Simulation {
 	
-	private Cell[][] board;
-	private int time = 0;
+	private Cell[][] board; //the cellular automaton grid
+	private int time = 0; //global time
 	private boolean finished = false;
-	private ArrayList<Coordinate> cellsAware;
 	
+	//all cells that are currently aware of the rumor are stored here
+	private ArrayList<Coordinate> cellsAware; 
 	private boolean wrapAround = false;
 
+	//update modes
 	public enum Mode {
 	    FOURMODE, EIGHTMODE
 	}
 	
 	private Mode mode;
 	
-	//create a new simulation object. parameters include board dimension and a list of coordinates
-	//Each coordinate refers to a cell that initially knows the rumor\
+	//what type of graph to plot
+	private int graphMode;
 	
-	public Simulation(int dim, Mode mode, boolean wrapAround, List<Coordinate> coord)
+	//create a new simulation object. parameters include board dimension
+	//and a list of coordinates
+	//Each coordinate refers to a cell that initially knows the rumor
+	public Simulation(int dim, Mode mode, 
+			boolean wrapAround, List<Coordinate> coord, int graphMode)
 	{
 		this.wrapAround = wrapAround;
 
 		this.mode = mode;
+		this.graphMode = graphMode;
 		this.cellsAware = new ArrayList<Coordinate>(0);
 		this.cellsAware.addAll(coord);
 
 		
 		//initialize board array
-		
 		
 		this.board = new Cell[dim][dim];
 		for (int i=0;i<dim;i++)
@@ -43,6 +51,8 @@ public class Simulation {
 			}
 		}
 		
+		//initially tell the rumor to all cells specified in the input file
+		//using time = 0
 		for (Coordinate c : this.cellsAware)
 		{
 			this.board[c.getX()][c.getY()].tell(this.time);
@@ -51,25 +61,74 @@ public class Simulation {
 		this.time += 1;
 	}
 
+	//run the simulation to completion
 	public void runSim()
 	{
-		printBoard();
+		switch (this.graphMode)
+		{
+			
+			case 0:
+				printBoard();
+				break;
+			
+			case 1:
+				printNumberOfTimesBoard();
+				break;
+				
+			case 2:
+				printFirstHeardBoard();
+				break;
+				
+				
+			default:
+				break;
+		}
 		
+		// while simulation is not finished, i.e. not everyone knows the rumor
+		// keep updating the simulation/ "ticking"
 		while (this.cellsAware.size() < (this.board.length*this.board.length))
 		{
 			this.tick();
-			printBoard();
+			
+			//print a different graph depending on the mode specified by input
+			switch (this.graphMode)
+			{
+				
+				case 0:
+					printBoard();
+					break;
+				
+				case 1:
+					printNumberOfTimesBoard();
+					break;
+					
+				case 2:
+					printFirstHeardBoard();
+					break;
+					
+					
+				default:
+					break;
+			}
+			
 		}
 		
-		System.out.println("Total ticks: " + (this.time-1));
+		if (this.graphMode < 3)
+			{
+			System.out.println("Total ticks: " + (this.time-1));
+			}
 
 	}
 	
+	//retrieve a neighbor to tell from the Moore neighborhood
 	private Coordinate getEightModeNeighbour(Coordinate c)
 	{
 		Coordinate returnCoord = null;
+		//generate a random int in order to decide the neighbor
 		int randomNeighbor = new Random().nextInt(8);
 		
+		
+		//each case represents a different neighbor coordinate
 		switch (randomNeighbor)
 		{
 			case 0: 
@@ -120,6 +179,8 @@ public class Simulation {
 		
 	}
 	
+	//This is the same as the eight-mode function but selects from
+	//four neighbours instead
 	private Coordinate getFourModeNeighbour(Coordinate c)
 	{
 		Coordinate returnCoord = null;
@@ -155,6 +216,8 @@ public class Simulation {
 		
 	}
 	
+	// This is used so that if out of bounds coordinates are generated earlier
+	// they can be wrapped around to valid coordinates (if wrapping is on)
 	private Coordinate normalizeCoord(Coordinate c) {
 		// either normalize the coordinate or set it to null
 		// if wrap around is off then out of bounds coordinates
@@ -201,28 +264,36 @@ public class Simulation {
 	}
 
 	private void tick() {
-		// TODO Auto-generated method stub
+		// perform a single tick of the simulation
 		
+		//track the cells that have only become newly
+		//aware of the rumor on this tick
 		ArrayList<Coordinate> newlyAware = new ArrayList<Coordinate>(0);
+		
+		//loop through all cells that know the rumor
 		for (Coordinate c : this.cellsAware)
 		{
 			Coordinate n = null;
+			//find the neighbor to tell, depending on update rule mode
 			switch(this.mode)
 			{
 				case FOURMODE:
 					n = getFourModeNeighbour(c);
 					if (n != null)
 					{
+						//tell the cell the rumor
 						this.board[n.getX()][n.getY()].tell(this.time);
 						if ((this.board[n.getX()][n.getY()].getfirstTold() 
 								== this.time) && (
 								this.board[n.getX()][n.getY()].timesTold == 1))
 						{
+							//add the cell to the newly aware list
 							newlyAware.add(n);
 						}
 					}
 					break;
 				
+				//as above
 				case EIGHTMODE:
 					n = getEightModeNeighbour(c);
 					if (n != null)
@@ -242,6 +313,7 @@ public class Simulation {
 			}
 		}
 		
+		//add all newly aware cells to the main list of aware cells
 		this.cellsAware.addAll(newlyAware);
 				
 		if (this.cellsAware.size() == (this.board.length*this.board.length))
@@ -252,6 +324,13 @@ public class Simulation {
 		this.time += 1;
 	}
 
+	public int getTicks()
+	{
+	 return	this.time-1;
+	}
+	
+	//print board state
+	//will only show if cells have been told(T), or not(-)
 	public void printBoard()
 	{
 		System.out.println("Time:" + (this.time-1));
@@ -275,5 +354,55 @@ public class Simulation {
 		}
 		System.out.print("\n");
 	}
+	
+	
+	//print a csv output of when each cell first heard the rumor
+	public void printFirstHeardBoard()
+	{
+		System.out.println("Time:" + (this.time-1));
+		System.out.println("CellsAware: " + this.cellsAware.size());
+
+		for (int i=0;i<board.length;i++)
+		{
+			for (int j=0;j<board.length;j++)
+			{
+				
+				System.out.print(board[j][i].getfirstTold());
+				if (j < (board.length-1))
+				{
+					System.out.print(",");
+				}
+
+				
+			}
+			System.out.print("\n");
+		}
+		System.out.print("\n");
+	}
+	
+	//print a csv output of how many times each cell has heard the rumor
+	public void printNumberOfTimesBoard()
+	{
+		System.out.println("Time:" + (this.time-1));
+		System.out.println("CellsAware: " + this.cellsAware.size());
+
+		for (int i=0;i<board.length;i++)
+		{
+			for (int j=0;j<board.length;j++)
+			{
+				
+				System.out.print(board[j][i].timesTold);
+				if (j < (board.length-1))
+				{
+					System.out.print(",");
+				}
+
+				
+			}
+			System.out.print("\n");
+		}
+		System.out.print("\n");
+	}
+	
 	
 }

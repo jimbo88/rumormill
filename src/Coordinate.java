@@ -1,9 +1,11 @@
-
+//This class wraps an x coordinate and a y coordinate into a single object
+//These coordinates are used in the list of coords that are aware of the rumor
 public class Coordinate {
 
 	private int x;
 	private int y;
 	
+	//create a new coordinate
 	public Coordinate(int x, int y)
 	{
 		this.x = x;
